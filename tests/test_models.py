@@ -65,15 +65,36 @@ def test_daily_max(test, expected):
     npt.assert_array_equal(daily_max(np.array(test)),np.array(expected))
 
 @pytest.mark.parametrize(
-    "test, expected",
+    "test, expected, raises",
     [
-        ([[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]]),
-        ([[1, 1, 1], [1, 1, 1], [1, 1, 1]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
-        ([[float('nan'), 1, 1], [1, 1, 1], [1, 1, 1]], [[0, 1, 1], [1, 1, 1], [1, 1, 1]]),
-        ([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[0.33, 0.67, 1], [0.67, 0.83, 1], [0.78, 0.89, 1]]),
+        (
+                'hello',
+                None,
+                TypeError,
+        ),
+        (
+                3,
+                None,
+                TypeError,
+        ),
+        (
+                [[1, 2, 3], [4, 5, 6], [7, 8, -1]],
+                [[0.33, 0.67, 1], [0.67, 0.83, 1], [0.78, 0.89, 1]],
+                ValueError,
+        ),
+        (
+                [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+                [[0.33, 0.67, 1], [0.67, 0.83, 1], [0.78, 0.89, 1]],
+                None,
+        )
     ])
-def test_patient_normalise(test, expected):
-    """Test normalisation works for arrays of one and positive integers.
-       Assumption that test accuracy of two decimal places is sufficient."""
+def test_patient_normalise(test, expected, raises):
+    """Test normalisation works for arrays of one and positive integers."""
     from inflammation.models import patient_normalise
-    npt.assert_almost_equal(patient_normalise(np.array(test)), np.array(expected), decimal=2)
+    if isinstance(test, list):
+        test = np.array(test)
+    if raises:
+        with pytest.raises(raises):
+            npt.assert_almost_equal(patient_normalise(test), np.array(expected), decimal=2)
+    else:
+        npt.assert_almost_equal(patient_normalise(test), np.array(expected), decimal=2)
